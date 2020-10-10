@@ -1,11 +1,9 @@
 package com.parfoismeng.slidebacklib.widget
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Path
+import android.graphics.*
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
 import kotlin.math.max
@@ -16,8 +14,20 @@ import kotlin.math.max
  * desc   : 边缘返回的图标View
  */
 class SlideBackIconView constructor(context: Context?, attrs: AttributeSet? = null, defStyleAttr: Int = 0) : View(context, attrs, defStyleAttr) {
+
+    /**
+     * 哪个方向
+     */
+    private var mBy = Gravity.LEFT
+
     // 路径对象
     private val bgPath: Path by lazy { Path() }
+    private val realBgPath: Path by lazy { Path() }
+
+    /**
+     * 用于180度旋转 bgPath
+     */
+    private val bgPathMatrix: Matrix by lazy { Matrix() }
     private val arrowPath: Path by lazy { Path() }
 
     // 画笔对象
@@ -26,7 +36,7 @@ class SlideBackIconView constructor(context: Context?, attrs: AttributeSet? = nu
             isAntiAlias = true
             style = Paint.Style.FILL_AND_STROKE // 填充内部和描边
             color = viewBackgroundColor
-            strokeWidth = 1f // 画笔宽度
+            strokeWidth = 0.01f // 画笔宽度
         }
     }
     private val arrowPaint: Paint by lazy {
@@ -50,6 +60,10 @@ class SlideBackIconView constructor(context: Context?, attrs: AttributeSet? = nu
         alpha = 0f
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        setMeasuredDimension(viewMaxLength.toInt(), viewHeight.toInt())
+    }
+
     /**
      * 因为过程中会多次绘制，所以要先重置路径再绘制。
      * 贝塞尔曲线没什么好说的，相关文章有很多。此曲线经测试比较类似“即刻App”。
@@ -65,11 +79,16 @@ class SlideBackIconView constructor(context: Context?, attrs: AttributeSet? = nu
         super.onDraw(canvas)
 
         // 背景
+        bgPathMatrix.reset()
+        realBgPath.reset()
         bgPath.reset() // 会多次绘制，所以先重置
         bgPath.moveTo(0f, 0f)
         bgPath.cubicTo(0f, viewHeight * 2 / 9, currentSlideLength, viewHeight / 3, currentSlideLength, viewHeight / 2)
         bgPath.cubicTo(currentSlideLength, viewHeight * 2 / 3, 0f, viewHeight * 7 / 9, 0f, viewHeight)
-        canvas.drawPath(bgPath, bgPaint) // 根据设置的贝塞尔曲线路径用画笔绘制
+        // 在右边时需要旋转 180 度
+        bgPathMatrix.postRotate(if (mBy == Gravity.LEFT) 0f else 180f, viewMaxLength / 2, viewHeight / 2)
+        realBgPath.addPath(bgPath, bgPathMatrix)
+        canvas.drawPath(realBgPath, bgPaint) // 根据设置的贝塞尔曲线路径用画笔绘制
 
         // 箭头是先直线由短变长再折弯变成箭头状的
         // 依据当前拉动距离和最大拉动距离计算箭头大小值
@@ -111,5 +130,21 @@ class SlideBackIconView constructor(context: Context?, attrs: AttributeSet? = nu
         val layoutParams = FrameLayout.LayoutParams(layoutParams)
         layoutParams.topMargin = (position - viewHeight / 2).toInt()
         setLayoutParams(layoutParams)
+    }
+
+    /**
+     * 设置显示的位置：{@link Gravity#LEFT} 和 {@link Gravity#RIGHT}
+     */
+    fun setBy(by: Int) {
+        mBy = by
+        val layoutParams = layoutParams as FrameLayout.LayoutParams
+        when (mBy) {
+            Gravity.LEFT -> {
+                layoutParams.gravity = Gravity.LEFT
+            }
+            Gravity.RIGHT -> {
+                layoutParams.gravity = Gravity.RIGHT
+            }
+        }
     }
 }

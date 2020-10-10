@@ -3,6 +3,7 @@ package com.parfoismeng.slidebacklib
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Color
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
@@ -57,6 +58,8 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
             viewHeight = iconViewHeight
             viewArrowSize = iconViewArrowSize
             viewMaxLength = iconViewMaxLength
+            pivotX = viewMaxLength / 2
+            pivotY = viewHeight / 2
         }
     }
 
@@ -66,9 +69,9 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
     private var iconViewBackgroundColor = Color.BLACK
 
     /**
-     * IconView 高度 默认160dp
+     * IconView 高度 默认240dp
      */
-    var iconViewHeight: Float = dp2px(160)
+    var iconViewHeight: Float = dp2px(240)
 
     /**
      * IconView 箭头图标大小 默认5dp
@@ -76,9 +79,9 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
     var iconViewArrowSize: Float = dp2px(5)
 
     /**
-     * IconView 最大拉动距离 默认30dp
+     * IconView 最大拉动距离 默认28dp
      */
-    var iconViewMaxLength: Float = dp2px(30)
+    var iconViewMaxLength: Float = dp2px(28)
 
 
     /**
@@ -87,9 +90,9 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
     var sideSlideLength: Float = iconViewMaxLength / 2
 
     /**
-     * 阻尼系数 默认3
+     * 阻尼系数 默认5
      */
-    var dragRate: Float = 3f
+    var dragRate: Float = 5f
 
     /**
      * 需要使用滑动的页面注册
@@ -107,6 +110,7 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
         // 设置触摸监听
         container.setOnTouchListener(object : OnTouchListener {
             private var isSideSlide = false // 是否从边缘开始滑动
+            private var isSideSlideByRight = false // 是否从边缘开始滑动
             private var downX = 0f // 按下的X轴坐标
             private var moveXLength = 0f // 位移的X轴距离
 
@@ -115,10 +119,18 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
                     MotionEvent.ACTION_DOWN -> {
                         // 更新按下点的X轴坐标
                         downX = event.x
+                        // 根据Y轴位置给SlideBackIconView定位
+                        iconView.setSlideBackPosition(event.y)
 
                         // 检验是否从边缘开始滑动
                         if (downX <= sideSlideLength) {
                             isSideSlide = true
+                            // 显示在左边
+                            iconView.setBy(Gravity.LEFT)
+                        } else if (downX >= container.width - sideSlideLength) {
+                            isSideSlideByRight = true
+                            // 显示在右边
+                            iconView.setBy(Gravity.RIGHT)
                         }
                     }
                     MotionEvent.ACTION_MOVE -> {
@@ -127,16 +139,21 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
                             // 获取X轴位移距离
                             moveXLength = max(event.x - downX, 0F)
 
+                            // 根据Y轴位置给SlideBackIconView定位
+//                            iconView.setSlideBackPosition(event.y)
+                        } else if (isSideSlideByRight) {
+                            // 获取X轴位移距离
+                            moveXLength = max(downX - event.x, 0F)
+                        }
+
+                        if (isSideSlide || isSideSlideByRight) {
                             // 如果位移距离在可拉动距离内，更新SlideBackIconView的当前拉动距离并重绘，区分左右
                             iconView.updateSlideLength(min(moveXLength / dragRate, iconViewMaxLength))
-
-                            // 根据Y轴位置给SlideBackIconView定位
-                            iconView.setSlideBackPosition(event.y)
                         }
                     }
                     MotionEvent.ACTION_UP -> {
                         // 从边缘开始滑动
-                        if (isSideSlide) {
+                        if (isSideSlide || isSideSlideByRight) {
                             // 抬起点的X轴坐标大于某值(默认3倍最大滑动长度)则Callback
                             if (moveXLength / dragRate >= iconViewMaxLength) {
                                 callBack()
@@ -146,10 +163,11 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
                             iconView.updateSlideLength(0f)
 
                             isSideSlide = false
+                            isSideSlideByRight = false
                         }
                     }
                 }
-                return isSideSlide
+                return isSideSlide || isSideSlideByRight
             }
         })
     }
