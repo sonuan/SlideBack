@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
+import java.time.Duration
 import kotlin.math.max
 
 /**
@@ -141,11 +142,11 @@ class SlideBackIconView constructor(context: Context?, attrs: AttributeSet? = nu
     /**
      * 恢复滑动
      */
-    fun resetSlide() {
+    fun resetSlide(duration: Long) {
         if (resetAnimator != null && resetAnimator!!.isRunning) {
             resetAnimator?.cancel()
         }
-        resetAnimator = ValueAnimator.ofFloat(currentSlideLength, 0f).setDuration(180)
+        resetAnimator = ValueAnimator.ofFloat(currentSlideLength, 0f).setDuration(duration)
         resetAnimator?.addUpdateListener {
             val animatedValue = it.getAnimatedValue() as Float
             updateSlideLength(animatedValue)

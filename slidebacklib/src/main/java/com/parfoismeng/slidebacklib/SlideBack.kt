@@ -159,10 +159,12 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
                             // 抬起点的X轴坐标大于某值(默认3倍最大滑动长度)则Callback
                             if (moveXLength / dragRate >= iconViewMaxLength) {
                                 callBack()
+                                // 恢复SlideBackIconView的状态
+                                iconView.resetSlide(50)
+                            } else {
+                                // 恢复SlideBackIconView的状态
+                                iconView.resetSlide(180)
                             }
-
-                            // 恢复SlideBackIconView的状态
-                            iconView.resetSlide()
 
                             isSideSlide = false
                             isSideSlideByRight = false

@@ -25,6 +25,7 @@ class SecondActivity : AppCompatActivity() {
 
         registerSlideBack(callBack = {
             Toast.makeText(this, "SecondActivity SlideBack", Toast.LENGTH_SHORT).show();
+            onBackPressed()
         }) {
             iconViewHeight = dp2px(120)
             iconViewArrowSize = dp2px(5)
