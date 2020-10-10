@@ -90,9 +90,9 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
     var sideSlideLength: Float = iconViewMaxLength / 2
 
     /**
-     * 阻尼系数 默认5
+     * 阻尼系数 默认4.2
      */
-    var dragRate: Float = 5f
+    var dragRate: Float = 4.2f
 
     /**
      * 需要使用滑动的页面注册
@@ -119,15 +119,17 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
                     MotionEvent.ACTION_DOWN -> {
                         // 更新按下点的X轴坐标
                         downX = event.x
-                        // 根据Y轴位置给SlideBackIconView定位
-                        iconView.setSlideBackPosition(event.y)
 
                         // 检验是否从边缘开始滑动
                         if (downX <= sideSlideLength) {
+                            // 根据Y轴位置给SlideBackIconView定位
+                            iconView.setSlideBackPosition(event.y)
                             isSideSlide = true
                             // 显示在左边
                             iconView.setBy(Gravity.LEFT)
                         } else if (downX >= container.width - sideSlideLength) {
+                            // 根据Y轴位置给SlideBackIconView定位
+                            iconView.setSlideBackPosition(event.y)
                             isSideSlideByRight = true
                             // 显示在右边
                             iconView.setBy(Gravity.RIGHT)
@@ -160,7 +162,7 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
                             }
 
                             // 恢复SlideBackIconView的状态
-                            iconView.updateSlideLength(0f)
+                            iconView.resetSlide()
 
                             isSideSlide = false
                             isSideSlideByRight = false

@@ -1,5 +1,6 @@
 package com.parfoismeng.slidebacklib.widget
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -29,6 +30,8 @@ class SlideBackIconView constructor(context: Context?, attrs: AttributeSet? = nu
      */
     private val bgPathMatrix: Matrix by lazy { Matrix() }
     private val arrowPath: Path by lazy { Path() }
+
+    private var resetAnimator: ValueAnimator? = null
 
     // 画笔对象
     private val bgPaint: Paint by lazy {
@@ -126,16 +129,37 @@ class SlideBackIconView constructor(context: Context?, attrs: AttributeSet? = nu
      * @param position 触点位置
      */
     fun setSlideBackPosition(position: Float) {
+        if (resetAnimator != null && resetAnimator!!.isRunning()) {
+            return
+        }
         // 触点位置减去SlideBackIconView一半高度即为topMargin
-        val layoutParams = FrameLayout.LayoutParams(layoutParams)
+        val layoutParams = this.layoutParams as FrameLayout.LayoutParams
         layoutParams.topMargin = (position - viewHeight / 2).toInt()
         setLayoutParams(layoutParams)
+    }
+
+    /**
+     * 恢复滑动
+     */
+    fun resetSlide() {
+        if (resetAnimator != null && resetAnimator!!.isRunning) {
+            resetAnimator?.cancel()
+        }
+        resetAnimator = ValueAnimator.ofFloat(currentSlideLength, 0f).setDuration(180)
+        resetAnimator?.addUpdateListener {
+            val animatedValue = it.getAnimatedValue() as Float
+            updateSlideLength(animatedValue)
+        }
+        resetAnimator?.start()
     }
 
     /**
      * 设置显示的位置：{@link Gravity#LEFT} 和 {@link Gravity#RIGHT}
      */
     fun setBy(by: Int) {
+        if (resetAnimator != null && resetAnimator!!.isRunning()) {
+            return
+        }
         mBy = by
         val layoutParams = layoutParams as FrameLayout.LayoutParams
         when (mBy) {
