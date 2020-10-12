@@ -34,7 +34,7 @@ uploadArchives {
         }
 
         pom.project {
-            version "1.1.2-02"
+            version "1.1.2-03"
             artifactId "ParfoisMeng.SlideBack"
             groupId "hb"
             packaging 'aar'

@@ -43,6 +43,13 @@ fun Activity.unregisterSlideBack() {
 }
 
 /**
+ * 是否开启侧滑返回
+ */
+fun Activity.setSwipeBack(isSwipe: Boolean) {
+    slideBackMap[this]?.setSwipeBack(isSwipe)
+}
+
+/**
  * author : ParfoisMeng
  * time   : 2018/12/19
  * desc   : SlideBack管理器
@@ -95,6 +102,13 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
     var dragRate: Float = 4.2f
 
     /**
+     * 是否开启侧滑返回，默认开启
+     */
+    var hasSwipeBack = true
+
+    var slideBackInterceptLayout: SlideBackInterceptLayout? = null
+
+    /**
      * 需要使用滑动的页面注册
      */
     @SuppressLint("ClickableViewAccessibility")
@@ -103,7 +117,8 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
         val container = activity.window.decorView as FrameLayout
         // 如果设置有滑动冲突的话，需要在根布局添加拦截布局
         if (haveScroll) {
-            addInterceptLayout(container, SlideBackInterceptLayout(activity).withSideSlideLength(sideSlideLength))
+            slideBackInterceptLayout = SlideBackInterceptLayout(activity)
+            addInterceptLayout(container, slideBackInterceptLayout?.withSideSlideLength(sideSlideLength))
         }
         // 添加 IconView
         container.addView(iconView)
@@ -115,6 +130,10 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
             private var moveXLength = 0f // 位移的X轴距离
 
             override fun onTouch(v: View, event: MotionEvent): Boolean {
+                // 没有开启侧滑返回
+                if (!hasSwipeBack) {
+                    return false
+                }
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         // 更新按下点的X轴坐标
@@ -179,15 +198,25 @@ class SlideBack constructor(private val activity: Activity, private var haveScro
     /**
      * 给根布局包上一层事件拦截处理Layout
      */
-    private fun addInterceptLayout(decorView: ViewGroup, interceptLayout: SlideBackInterceptLayout) {
+    private fun addInterceptLayout(decorView: ViewGroup, interceptLayout: SlideBackInterceptLayout?) {
         val rootLayout = decorView.getChildAt(0) // 取出根布局
         decorView.removeView(rootLayout) // 先移除根布局
         // 用事件拦截处理Layout将原根布局包起来，再添加回去
-        interceptLayout.addView(rootLayout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        interceptLayout?.addView(rootLayout, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         decorView.addView(interceptLayout)
     }
 
     fun dp2px(dpValue: Int): Float {
         return dpValue * activity.resources.displayMetrics.density + 0.5f
+    }
+
+    /**
+     * 开启/关闭侧滑返回
+     */
+    fun setSwipeBack(isSwipe: Boolean) {
+        this.hasSwipeBack = isSwipe
+        if (this.slideBackInterceptLayout != null) {
+            this.slideBackInterceptLayout?.hasSwipeBack = isSwipe
+        }
     }
 }

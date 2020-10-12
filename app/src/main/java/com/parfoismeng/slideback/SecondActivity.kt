@@ -6,6 +6,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.parfoismeng.slidebacklib.registerSlideBack
+import com.parfoismeng.slidebacklib.setSwipeBack
 import com.parfoismeng.slidebacklib.unregisterSlideBack
 
 /**
@@ -33,6 +34,7 @@ class SecondActivity : AppCompatActivity() {
             sideSlideLength = dp2px(10)
             dragRate = dp2px(3)
         }
+        setSwipeBack(false)
     }
 
     override fun onDestroy() {
