@@ -2,6 +2,7 @@ package com.parfoismeng.slidebacklib.widget
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.widget.FrameLayout
 
@@ -20,7 +21,7 @@ class SlideBackInterceptLayout(context: Context, attrs: AttributeSet? = null, de
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
         if (hasSwipeBack) {
-            return ev.action == MotionEvent.ACTION_DOWN && (ev.rawX <= sideSlideLength || ev.rawX >= width - sideSlideLength)
+            return ev.action == MotionEvent.ACTION_DOWN && (ev.x <= sideSlideLength || ev.x >= width - sideSlideLength)
         }
         return super.onInterceptTouchEvent(ev)
     }
